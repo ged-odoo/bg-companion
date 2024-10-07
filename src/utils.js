@@ -1,3 +1,17 @@
+let isSleepPrevented = false;
+export function preventSleep() {
+  if ("wakeLock" in navigator && !isSleepPrevented) {
+    isSleepPrevented = true;
+    document.addEventListener(
+      "click",
+      () => {
+        navigator.wakeLock.request("screen");
+      },
+      { once: true },
+    );
+  }
+}
+
 export class Deck {
   static join(...decks) {
     const cards = decks.map((d) => d.cards).flat(1);

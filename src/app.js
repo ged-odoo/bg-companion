@@ -1,6 +1,6 @@
 import { fearCards } from "./data";
 import { GameState } from "./game_state";
-import { Deck } from "./utils";
+import { Deck, preventSleep } from "./utils";
 import { Component, mount, useState, xml } from "@odoo/owl";
 
 class Root extends Component {
@@ -73,6 +73,8 @@ class Root extends Component {
 
   setup() {
     this.game = useState(new GameState());
+    preventSleep();
+
     // debug
     window.game = this.game;
   }

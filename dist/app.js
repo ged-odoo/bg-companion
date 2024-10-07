@@ -127,6 +127,19 @@
   ];
 
   // src/utils.js
+  var isSleepPrevented = false;
+  function preventSleep() {
+    if ("wakeLock" in navigator && !isSleepPrevented) {
+      isSleepPrevented = true;
+      document.addEventListener(
+        "click",
+        () => {
+          navigator.wakeLock.request("screen");
+        },
+        { once: true }
+      );
+    }
+  }
   var Deck = class _Deck {
     static join(...decks) {
       const cards = decks.map((d) => d.cards).flat(1);
@@ -5302,6 +5315,7 @@ See https://github.com/odoo/owl/blob/${hash}/doc/reference/app.md#configuration 
     </div>`;
     setup() {
       this.game = useState(new GameState());
+      preventSleep();
       window.game = this.game;
     }
     getCardEffect(card) {
