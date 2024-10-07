@@ -4,6 +4,7 @@ import {
   invaderCards1,
   invaderCards2,
   invaderCards3,
+  steps,
 } from "./data";
 import { Deck } from "./utils";
 
@@ -28,8 +29,29 @@ export class GameState {
     this.ravageTarget = "(none)";
     this.buildTarget = "(none)";
     this.exploreTarget = "(none)";
+    this.turn = 0;
+    this.step = 0;
   }
 
+  // ---------------------------------------------------------------------------
+  // Turn/Step Tracker
+  // ---------------------------------------------------------------------------
+
+  currentStep() {
+    return steps[this.step];
+  }
+
+  nextStep() {
+    if (this.turn === 0) {
+      this.turn = 1;
+    } else {
+      this.step++;
+      if (this.step === steps.length) {
+        this.turn++;
+        this.step = 0;
+      }
+    }
+  }
   // ---------------------------------------------------------------------------
   // Fear/Terror
   // ---------------------------------------------------------------------------

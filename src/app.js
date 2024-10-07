@@ -7,6 +7,16 @@ class Root extends Component {
   static template = xml`
     <div class="p-1">
       <div class="d-flex align-center mb-1">
+        <span class="flex-grow text-bold text-larger">Turn <t t-esc="game.turn"/></span>
+        <div class="d-flex">
+          <div class="button" t-on-click="() => this.game.nextStep()">Next Step</div>
+        </div>
+      </div>
+      <div t-if="game.turn">
+        <t t-esc="game.currentStep()"/>
+      </div>
+      <hr/>
+      <div class="d-flex align-center mb-1">
         <span class="flex-grow text-bold text-larger">Fear</span>
         <div class="d-flex">
           <div class="button" t-att-class="{'disabled': game.revealedFearCards}" t-on-click="() => this.game.increaseFear()">Increase</div>

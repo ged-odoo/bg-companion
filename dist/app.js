@@ -125,6 +125,20 @@
       description: "At the start of each Invader Phase, each Spirit forgets a power or destroys 1 of their Presence"
     }
   ];
+  var steps = [
+    "Spirit Phase: Growth",
+    "Spirit Phase: Gain Energy",
+    "Spirit Phase: Choose and Pay for Powers",
+    "Fast Power Phase",
+    "Invader Phase: Blighted Island",
+    "Invader Phase: Fear",
+    "Invader Phase: Ravage",
+    "Invader Phase: Build",
+    "Invader Phase: Explore",
+    "Invader Phase: Advance Cards",
+    "Slow Power Phase",
+    "End of Turn: Time Passes"
+  ];
 
   // src/utils.js
   var isSleepPrevented = false;
@@ -202,6 +216,25 @@
       this.ravageTarget = "(none)";
       this.buildTarget = "(none)";
       this.exploreTarget = "(none)";
+      this.turn = 0;
+      this.step = 0;
+    }
+    // ---------------------------------------------------------------------------
+    // Turn/Step Tracker
+    // ---------------------------------------------------------------------------
+    currentStep() {
+      return steps[this.step];
+    }
+    nextStep() {
+      if (this.turn === 0) {
+        this.turn = 1;
+      } else {
+        this.step++;
+        if (this.step === steps.length) {
+          this.turn++;
+          this.step = 0;
+        }
+      }
     }
     // ---------------------------------------------------------------------------
     // Fear/Terror
@@ -5249,6 +5282,16 @@ See https://github.com/odoo/owl/blob/${hash}/doc/reference/app.md#configuration 
   var Root = class extends Component {
     static template = xml`
     <div class="p-1">
+      <div class="d-flex align-center mb-1">
+        <span class="flex-grow text-bold text-larger">Turn <t t-esc="game.turn"/></span>
+        <div class="d-flex">
+          <div class="button" t-on-click="() => this.game.nextStep()">Next Step</div>
+        </div>
+      </div>
+      <div t-if="game.turn">
+        <t t-esc="game.currentStep()"/>
+      </div>
+      <hr/>
       <div class="d-flex align-center mb-1">
         <span class="flex-grow text-bold text-larger">Fear</span>
         <div class="d-flex">
