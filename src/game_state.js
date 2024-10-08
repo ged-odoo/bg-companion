@@ -17,6 +17,8 @@ function makeInvaderDeck() {
 
 export class GameState {
   constructor() {
+    this.players = 1;
+    this.isStarted = false;
     this.invaderDeck = makeInvaderDeck();
     this.fearDeck = new Deck(fearCards).shuffle().slice(9);
     this.earnedFearCards = [];
@@ -29,7 +31,7 @@ export class GameState {
     this.ravageTarget = "(none)";
     this.buildTarget = "(none)";
     this.exploreTarget = "(none)";
-    this.turn = 0;
+    this.turn = 1;
     this.step = 0;
   }
 
@@ -58,7 +60,7 @@ export class GameState {
 
   increaseFear() {
     this.fearCounter++;
-    if (this.fearCounter === 4) {
+    if (this.fearCounter === 4 * this.players) {
       this.fearCounter = 0;
       this.drawFearCard();
     }
@@ -88,7 +90,7 @@ export class GameState {
   addBlight() {
     this.blightCounter++;
     if (!this.isBlightCardFlipped) {
-      if (this.blightCounter === 3) {
+      if (this.blightCounter === this.players * 2 + 1) {
         this.isBlightCardFlipped = true;
         this.blightCounter = 0;
       }
