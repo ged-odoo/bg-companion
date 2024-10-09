@@ -222,6 +222,23 @@
       this.step = 0;
     }
     // ---------------------------------------------------------------------------
+    // Save/Restore
+    // ---------------------------------------------------------------------------
+    save() {
+      const state = JSON.stringify(this);
+      localStorage.setItem("bg_state", state);
+    }
+    restore() {
+      const dataStr = localStorage.getItem("bg_state");
+      if (!dataStr) {
+        return;
+      }
+      const data = JSON.parse(dataStr);
+      Object.assign(this, data);
+      this.invaderDeck = new Deck(this.invaderDeck.cards);
+      this.fearDeck = new Deck(this.fearDeck.cards);
+    }
+    // ---------------------------------------------------------------------------
     // Turn/Step Tracker
     // ---------------------------------------------------------------------------
     currentStep() {
@@ -237,6 +254,7 @@
           this.step = 0;
         }
       }
+      this.save();
     }
     // ---------------------------------------------------------------------------
     // Fear/Terror
@@ -247,6 +265,7 @@
         this.fearCounter = 0;
         this.drawFearCard();
       }
+      this.save();
     }
     drawFearCard() {
       const card = this.fearDeck.draw();
@@ -254,13 +273,16 @@
       if (this.fearDeck.currentSize % 3 === 0) {
         this.terrorLevel++;
       }
+      this.save();
     }
     showFearCard() {
       this.revealedFearCards++;
+      this.save();
     }
     discardFearCard() {
       this.earnedFearCards = [];
       this.revealedFearCards = 0;
+      this.save();
     }
     // ---------------------------------------------------------------------------
     // Blight stuff
@@ -273,9 +295,11 @@
           this.blightCounter = 0;
         }
       }
+      this.save();
     }
     removeBlight() {
       this.blightCounter--;
+      this.save();
     }
     // ---------------------------------------------------------------------------
     // Invaders
@@ -283,11 +307,13 @@
     explore() {
       const card = this.invaderDeck.draw();
       this.exploreTarget = card.description;
+      this.save();
     }
     advanceInvaders() {
       this.ravageTarget = this.buildTarget;
       this.buildTarget = this.exploreTarget;
       this.exploreTarget = "(none)";
+      this.save();
     }
   };
 
@@ -5334,6 +5360,7 @@ See https://github.com/odoo/owl/blob/${hash}/doc/reference/app.md#configuration 
         </select>
       </div>
       <div class="d-flex"><Button onClick.bind="start">Start</Button></div>
+      <div class="d-flex" t-if="canRestore"><Button onClick.bind="restore">Restore from Local Storage</Button></div>
     </div>
     <div class="p-1" t-if="game.isStarted">
       <!-- TURN TRACKER -->
@@ -5419,10 +5446,14 @@ See https://github.com/odoo/owl/blob/${hash}/doc/reference/app.md#configuration 
     setup() {
       this.game = useState(new GameState());
       preventSleep();
+      this.canRestore = window.localStorage.getItem("bg_state");
       window.game = this.game;
     }
     start() {
       this.game.isStarted = true;
+    }
+    restore() {
+      this.game.restore();
     }
     getCardEffect(card) {
       switch (this.game.terrorLevel) {

@@ -61,6 +61,7 @@ class Root extends Component {
         </select>
       </div>
       <div class="d-flex"><Button onClick.bind="start">Start</Button></div>
+      <div class="d-flex" t-if="canRestore"><Button onClick.bind="restore">Restore from Local Storage</Button></div>
     </div>
     <div class="p-1" t-if="game.isStarted">
       <!-- TURN TRACKER -->
@@ -148,12 +149,17 @@ class Root extends Component {
     this.game = useState(new GameState());
     preventSleep();
 
+    this.canRestore = window.localStorage.getItem("bg_state");
     // debug
     window.game = this.game;
   }
 
   start() {
     this.game.isStarted = true;
+  }
+
+  restore() {
+    this.game.restore();
   }
 
   getCardEffect(card) {
