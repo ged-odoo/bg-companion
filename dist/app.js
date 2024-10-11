@@ -221,6 +221,11 @@
       this.turn = 1;
       this.step = 0;
     }
+    start() {
+      this.explore();
+      this.advanceInvaders();
+      this.isStarted = true;
+    }
     // ---------------------------------------------------------------------------
     // Save/Restore
     // ---------------------------------------------------------------------------
@@ -5450,7 +5455,7 @@ See https://github.com/odoo/owl/blob/${hash}/doc/reference/app.md#configuration 
       window.game = this.game;
     }
     start() {
-      this.game.isStarted = true;
+      this.game.start();
     }
     restore() {
       this.game.restore();

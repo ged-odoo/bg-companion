@@ -35,6 +35,11 @@ export class GameState {
     this.step = 0;
   }
 
+  start() {
+    this.explore();
+    this.advanceInvaders();
+    this.isStarted = true;
+  }
   // ---------------------------------------------------------------------------
   // Save/Restore
   // ---------------------------------------------------------------------------

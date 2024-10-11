@@ -155,7 +155,7 @@ class Root extends Component {
   }
 
   start() {
-    this.game.isStarted = true;
+    this.game.start();
   }
 
   restore() {
