@@ -9,6 +9,8 @@ html {
 body {
   height: 100%;
   margin: 0;
+  display: flex;
+  flex-direction: column;
   @media (width >= 500px) {
     margin: auto;
     border-left: 1px solid black;
@@ -95,6 +97,9 @@ select {
 }
 .text-gray {
   color: gray;
+}
+.text-dark-gray {
+  color: #606060;
 }
 .text-primary {
   color: var(--primary);

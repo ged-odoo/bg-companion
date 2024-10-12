@@ -4,7 +4,6 @@ import {
   invaderCards1,
   invaderCards2,
   invaderCards3,
-  steps,
 } from "./data";
 import { Deck } from "./utils";
 
@@ -14,6 +13,34 @@ function makeInvaderDeck() {
   const lvl3Deck = new Deck(invaderCards3).shuffle();
   return Deck.join(lvl1Deck.slice(3), lvl2Deck.slice(4), lvl3Deck.slice(5));
 }
+
+export const PHASES = [
+  "growth",
+  "gain_energy",
+  "choose_powers",
+  "fast_powers",
+  "blighted_island",
+  "fear",
+  "ravage",
+  "build",
+  "explore",
+  "slow_powers",
+  "time_passes",
+];
+
+export const PHASE_MAP = {
+  growth: "Spirit Phase: Growth",
+  gain_energy: "Spirit Phase: Gain Energy",
+  choose_powers: "Spirit Phase: Choose and Pay for Powers",
+  fast_powers: "Fast Power Phase",
+  blighted_island: "Invader Phase: Blighted Island",
+  fear: "Invader Phase: Fear",
+  ravage: "Invader Phase: Ravage",
+  build: "Invader Phase: Build",
+  explore: "Invader Phase: Explore",
+  slow_powers: "Slow Power Phase",
+  time_passes: "End of Turn: Time passes",
+};
 
 export class GameState {
   constructor() {
@@ -33,6 +60,9 @@ export class GameState {
     this.exploreTarget = "(none)";
     this.turn = 1;
     this.step = 0;
+
+    //debug
+    window.gamestate = this;
   }
 
   start() {
@@ -64,19 +94,33 @@ export class GameState {
   // Turn/Step Tracker
   // ---------------------------------------------------------------------------
 
-  currentStep() {
-    return steps[this.step];
+  get currentPhase() {
+    return PHASES[this.step];
   }
 
-  nextStep() {
-    if (this.turn === 0) {
-      this.turn = 1;
-    } else {
-      this.step++;
-      if (this.step === steps.length) {
-        this.turn++;
-        this.step = 0;
-      }
+  nextPhase() {
+    if (this.currentPhase === "fear") {
+      this.discardFearCard();
+    }
+    this.step++;
+    if (this.step === PHASES.length) {
+      this.turn++;
+      this.step = 0;
+    }
+    const currentPhase = this.currentPhase;
+    if (currentPhase === 'explore') {
+      this.explore();
+    }
+    if (currentPhase === "slow_powers") {
+      this.advanceInvaders();
+    }
+    if (currentPhase === "blighted_island" && !this.isBlightCardFlipped) {
+      this.nextPhase();
+      return;
+    }
+    if (currentPhase === "fear" && !this.earnedFearCards.length) {
+      this.nextPhase();
+      return;
     }
     this.save();
   }

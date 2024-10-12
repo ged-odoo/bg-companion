@@ -125,20 +125,6 @@
       description: "At the start of each Invader Phase, each Spirit forgets a power or destroys 1 of their Presence"
     }
   ];
-  var steps = [
-    "Spirit Phase: Growth",
-    "Spirit Phase: Gain Energy",
-    "Spirit Phase: Choose and Pay for Powers",
-    "Fast Power Phase",
-    "Invader Phase: Blighted Island",
-    "Invader Phase: Fear",
-    "Invader Phase: Ravage",
-    "Invader Phase: Build",
-    "Invader Phase: Explore",
-    "Invader Phase: Advance Cards",
-    "Slow Power Phase",
-    "End of Turn: Time Passes"
-  ];
 
   // src/utils.js
   var isSleepPrevented = false;
@@ -202,6 +188,32 @@
     const lvl3Deck = new Deck(invaderCards3).shuffle();
     return Deck.join(lvl1Deck.slice(3), lvl2Deck.slice(4), lvl3Deck.slice(5));
   }
+  var PHASES = [
+    "growth",
+    "gain_energy",
+    "choose_powers",
+    "fast_powers",
+    "blighted_island",
+    "fear",
+    "ravage",
+    "build",
+    "explore",
+    "slow_powers",
+    "time_passes"
+  ];
+  var PHASE_MAP = {
+    growth: "Spirit Phase: Growth",
+    gain_energy: "Spirit Phase: Gain Energy",
+    choose_powers: "Spirit Phase: Choose and Pay for Powers",
+    fast_powers: "Fast Power Phase",
+    blighted_island: "Invader Phase: Blighted Island",
+    fear: "Invader Phase: Fear",
+    ravage: "Invader Phase: Ravage",
+    build: "Invader Phase: Build",
+    explore: "Invader Phase: Explore",
+    slow_powers: "Slow Power Phase",
+    time_passes: "End of Turn: Time passes"
+  };
   var GameState = class {
     constructor() {
       this.players = 1;
@@ -220,6 +232,7 @@
       this.exploreTarget = "(none)";
       this.turn = 1;
       this.step = 0;
+      window.gamestate = this;
     }
     start() {
       this.explore();
@@ -246,18 +259,32 @@
     // ---------------------------------------------------------------------------
     // Turn/Step Tracker
     // ---------------------------------------------------------------------------
-    currentStep() {
-      return steps[this.step];
+    get currentPhase() {
+      return PHASES[this.step];
     }
-    nextStep() {
-      if (this.turn === 0) {
-        this.turn = 1;
-      } else {
-        this.step++;
-        if (this.step === steps.length) {
-          this.turn++;
-          this.step = 0;
-        }
+    nextPhase() {
+      if (this.currentPhase === "fear") {
+        this.discardFearCard();
+      }
+      this.step++;
+      if (this.step === PHASES.length) {
+        this.turn++;
+        this.step = 0;
+      }
+      const currentPhase = this.currentPhase;
+      if (currentPhase === "explore") {
+        this.explore();
+      }
+      if (currentPhase === "slow_powers") {
+        this.advanceInvaders();
+      }
+      if (currentPhase === "blighted_island" && !this.isBlightCardFlipped) {
+        this.nextPhase();
+        return;
+      }
+      if (currentPhase === "fear" && !this.earnedFearCards.length) {
+        this.nextPhase();
+        return;
       }
       this.save();
     }
@@ -5314,11 +5341,36 @@ See https://github.com/odoo/owl/blob/${hash}/doc/reference/app.md#configuration 
   // src/app.js
   var Card = class extends Component {
     static template = xml`
-        <div class="m-1 border-gray p-1 flex-1 border-radius-4 bg-white" style="box-shadow: 2px 1px 1px #a9a7a7;">
-          <div class="text-bold"><t t-esc="props.title"/></div>
-          <div class="text-italic"><t t-slot="default"/></div>
-        </div>
-    `;
+      <div class="m-1 border-gray p-1 flex-1 border-radius-4 bg-white" t-att-class="props.class">
+        <div class="text-bold"><t t-esc="props.title"/></div>
+        <div class="text-italic"><t t-slot="default"/></div>
+      </div>
+  `;
+    static props = ["class?"];
+  };
+  var PhaseCard = class extends Component {
+    static template = xml`
+    <div class="phase m-1 py-2 px-1 border-gray border-radius-4 bg-white"
+      t-att-style="active ? 'outline: solid 2px black;border:1px solid black;background-color:#ffdcab;' : ''">
+      <div class="d-flex space-between align-center">
+        <span  class="text-bold" t-att-class="{'text-dark-gray': !active}">
+          <t t-esc="text"/>
+        </span>
+        <t t-if="active">
+          <span class="button" style="margin:0;" t-on-click="() => props.game.nextPhase()">
+            Complete
+          </span>
+        </t>
+      </div>
+      <t t-slot="default"/>
+    </div>`;
+    static props = ["phase", "game", "slots?"];
+    get text() {
+      return PHASE_MAP[this.props.phase];
+    }
+    get active() {
+      return this.props.phase === this.props.game.currentPhase;
+    }
   };
   var Button = class extends Component {
     static template = xml`
@@ -5354,7 +5406,13 @@ See https://github.com/odoo/owl/blob/${hash}/doc/reference/app.md#configuration 
     static template = xml`
     <!-- NAVBAR -->
     <div class="bg-primary text-white d-flex align-center space-between" style="height:45px;">
-      <span class="m-1">Spirit Island</span>
+      <t t-if="game.isStarted">
+        <span class="m-1">Turn <t t-esc="game.turn"/></span>
+        <span class="m-1">Invader deck: <t t-esc="game.invaderDeck.currentSize"/>/12 cards</span>
+      </t>
+      <t t-else="">
+        <span class="m-1">Setup</span>
+      </t>
     </div>
     <div class="p-1" t-if="!game.isStarted">
       <div>
@@ -5367,9 +5425,68 @@ See https://github.com/odoo/owl/blob/${hash}/doc/reference/app.md#configuration 
       <div class="d-flex"><Button onClick.bind="start">Start</Button></div>
       <div class="d-flex" t-if="canRestore"><Button onClick.bind="restore">Restore from Local Storage</Button></div>
     </div>
-    <div class="p-1" t-if="game.isStarted">
+    <div class="flex-grow d-flex flex-column" t-if="game.isStarted">
+      <div class="d-flex p-1">
+        <Card title="'Ravage'" class="'pb-2'">
+          <t t-esc="game.ravageTarget"/>
+        </Card>
+        <Card title="'Build'" class="'pb-2'">
+          <t t-esc="game.buildTarget"/>
+        </Card>
+        <Card title="'Explore'"  class="'pb-2'">
+          <t t-esc="game.exploreTarget"/>
+        </Card>
+      </div>
+      <PhaseCard phase="'growth'" game="game"/>
+      <PhaseCard phase="'gain_energy'" game="game"/>
+      <PhaseCard phase="'choose_powers'" game="game"/>
+      <PhaseCard phase="'fast_powers'" game="game"/>
+      <PhaseCard phase="'blighted_island'" game="game">
+        <div class="d-flex align-center mb-1">
+          <span class="flex-grow d-flex align-center">
+            <t t-if="game.isBlightCardFlipped">
+              Blighted Island (counter: <t t-esc="game.blightCounter"/>/<t t-esc="game.blightCard.blightCount*game.players"/>)
+            </t>
+            <t t-else="">
+              Healthy Island (counter: <t t-esc="game.blightCounter"/>/<t t-esc="2*game.players + 1"/>)
+            </t>
+            <Button onClick="() => game.removeBlight()" disabled="game.blightCounter === 0">Remove</Button>
+            <Button onClick="() => game.addBlight()">Add</Button>
+          </span>
+        </div>
+        <t t-if="game.isBlightCardFlipped">
+          <Card title="game.blightCard.title">
+            <t t-esc="game.blightCard.description"/>
+          </Card>
+        </t>
+      </PhaseCard>
+      <PhaseCard phase="'fear'" game="game">
+        <div class="d-flex align-center">
+          <span>Terror Level: <t t-esc="game.terrorLevel"/> (fear counter: <t t-esc="game.fearCounter"/>/<t t-esc="4*game.players"/>)</span>
+          <Button  onClick="() => this.game.increaseFear()">
+            Increase
+          </Button>
+        </div>
+      <div class="d-flex align-center">
+        <span>Remaining Fear Cards: <t t-esc="game.fearDeck.currentSize"/></span>
+        <Button t-if="game.earnedFearCards.length and this.game.revealedFearCards !== game.earnedFearCards.length" onClick="() => game.showFearCard()">
+            Reveal
+        </Button>
+      </div>
+      <t t-foreach="game.earnedFearCards" t-as="card" t-key="card_index">
+        <t t-set="isRevealed" t-value="card_index lt game.revealedFearCards"/>
+        <Card title="isRevealed ? card.title : 'Fear Card'">
+          <span t-att-class="{'opacity-0': !isRevealed}"><t t-esc="getCardEffect(card)"/></span>
+        </Card>
+      </t>
+      </PhaseCard>
+      <PhaseCard phase="'ravage'" game="game"/>
+      <PhaseCard phase="'build'" game="game"/>
+      <PhaseCard phase="'explore'" game="game"/>
+      <PhaseCard phase="'slow_powers'" game="game"/>
+      <PhaseCard phase="'time_passes'" game="game"/>
       <!-- TURN TRACKER -->
-      <div class="d-flex align-center mb-1">
+      <!-- <div class="d-flex align-center mb-1">
         <span class="flex-grow text-bold text-larger">Turn <t t-esc="game.turn"/></span>
         <div class="d-flex">
           <Button class="'p-2'" onClick="() => this.game.nextStep()">Next Step</Button>
@@ -5378,9 +5495,9 @@ See https://github.com/odoo/owl/blob/${hash}/doc/reference/app.md#configuration 
       <div >
         <span><t t-if="game.turn" t-esc="game.currentStep()"/></span>
       </div>
-      <hr/>
+      <hr/> -->
       <!-- INVADER STUFF -->
-      <div class="d-flex align-center mb-1">
+      <!-- <div class="d-flex align-center mb-1">
         <span class="flex-grow text-bold text-larger">Invaders</span>
         <div class="d-flex">
           <Button onClick="() => this.game.explore()" disabled="!game.invaderDeck.currentSize || game.exploreTarget !== '(none)'">
@@ -5390,64 +5507,9 @@ See https://github.com/odoo/owl/blob/${hash}/doc/reference/app.md#configuration 
             Advance
           </Button>
         </div>
-      </div>
-      <div>Invader deck: <t t-esc="game.invaderDeck.currentSize"/> cards remaining</div>
-      <div class="d-flex">
-        <Card title="'Ravage'">
-          <t t-esc="game.ravageTarget"/>
-        </Card>
-        <Card title="'Build'">
-          <t t-esc="game.buildTarget"/>
-        </Card>
-        <Card title="'Explore'">
-          <t t-esc="game.exploreTarget"/>
-        </Card>
-      </div>
-      <hr/>
-      <!-- BLIGHT STUFF -->
-      <div class="d-flex align-center mb-1">
-        <span class="flex-grow text-bold text-larger">Blight</span>
-        <div class="d-flex">
-          <Button onClick="() => game.addBlight()">Add</Button>
-          <Button onClick="() => game.removeBlight()" disabled="game.blightCounter === 0">Remove</Button>
-        </div>
-      </div>
-      <t t-if="game.isBlightCardFlipped">
-        <div>Blighted Island (blight counter: <t t-esc="game.blightCounter"/>/<t t-esc="game.blightCard.blightCount*game.players"/>)</div>
-        <Card title="game.blightCard.title">
-          <t t-esc="game.blightCard.description"/>
-        </Card>
-      </t>
-      <t t-else="">
-        <div>Healthy Island (blight counter: <t t-esc="game.blightCounter"/>/<t t-esc="2*game.players + 1"/>)</div>
-      </t>
-      <hr/>
-      <!-- FEAR STUFF -->
-      <div class="d-flex align-center mb-1">
-        <span class="flex-grow text-bold text-larger">Fear</span>
-        <div class="d-flex">
-          <Button disabled="game.revealedFearCards" onClick="() => this.game.increaseFear()">
-            Increase
-          </Button>
-          <Button disabled="game.earnedFearCards.length === 0 || this.game.revealedFearCards === game.earnedFearCards.length" onClick="() => game.showFearCard()">
-            Reveal
-          </Button>
-          <Button disabled="game.revealedFearCards === 0 || game.revealedFearCards !== game.earnedFearCards.length" onClick="() => this.game.discardFearCard()">
-            Discard
-          </Button>
-        </div>
-      </div>
-      <div>Terror Level: <t t-esc="game.terrorLevel"/></div>
-      <div>Fear Counter: <t t-esc="game.fearCounter"/>/<t t-esc="4*game.players"/></div>
-      <div>Remaining Fear Cards: <t t-esc="game.fearDeck.currentSize"/></div>
-      <t t-foreach="game.earnedFearCards" t-as="card" t-key="card_index">
-        <t t-set="isRevealed" t-value="card_index lt game.revealedFearCards"/>
-        <Card title="isRevealed ? card.title : 'Fear Card'">
-          <span t-att-class="{'opacity-0': !isRevealed}"><t t-esc="getCardEffect(card)"/></span>
-        </Card>
-      </t>
+      </div> -->
     </div>`;
-    static components = { Button, Card };
+    static components = { Button, Card, PhaseCard };
     setup() {
       this.game = useState(new GameState());
       preventSleep();

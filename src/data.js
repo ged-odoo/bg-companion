@@ -151,18 +151,3 @@ export const blightCards = [
       "At the start of each Invader Phase, each Spirit forgets a power or destroys 1 of their Presence",
   },
 ];
-
-export const steps = [
-  "Spirit Phase: Growth",
-  "Spirit Phase: Gain Energy",
-  "Spirit Phase: Choose and Pay for Powers",
-  "Fast Power Phase",
-  "Invader Phase: Blighted Island",
-  "Invader Phase: Fear",
-  "Invader Phase: Ravage",
-  "Invader Phase: Build",
-  "Invader Phase: Explore",
-  "Invader Phase: Advance Cards",
-  "Slow Power Phase",
-  "End of Turn: Time Passes",
-];
