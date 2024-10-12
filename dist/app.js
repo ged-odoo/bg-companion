@@ -5350,7 +5350,7 @@ See https://github.com/odoo/owl/blob/${hash}/doc/reference/app.md#configuration 
   };
   var PhaseCard = class extends Component {
     static template = xml`
-    <div class="phase m-1 py-2 px-1 border-gray border-radius-4 bg-white"
+    <div class="phase mx-1 mb-1 py-2 px-1 border-gray border-radius-4 bg-white"
       t-att-style="active ? 'outline: solid 2px black;border:1px solid black;background-color:#ffdcab;' : ''">
       <div class="d-flex space-between align-center">
         <span  class="text-bold" t-att-class="{'text-dark-gray': !active}">
@@ -5414,16 +5414,17 @@ See https://github.com/odoo/owl/blob/${hash}/doc/reference/app.md#configuration 
         <span class="m-1">Setup</span>
       </t>
     </div>
-    <div class="p-1" t-if="!game.isStarted">
-      <div>
+    <div class="d-flex flex-column m-2 p-2" t-if="!game.isStarted">
+      <!-- <div>
         <span>Number of players: </span>
         <select t-model.number="game.players">
           <option value="1">1</option>
           <option value="2">2</option>
         </select>
-      </div>
-      <div class="d-flex"><Button onClick.bind="start">Start</Button></div>
-      <div class="d-flex" t-if="canRestore"><Button onClick.bind="restore">Restore from Local Storage</Button></div>
+      </div> -->
+      <Button class="'m-2'" onClick="() => this.start(1)">Start (1 player)</Button>
+      <Button class="'m-2'" onClick="() => this.start(2)">Start (2 players)</Button>
+      <Button class="'m-2'" t-if="canRestore" onClick.bind="restore">Restore from Local Storage</Button>
     </div>
     <div class="flex-grow d-flex flex-column" t-if="game.isStarted">
       <div class="d-flex p-1">
@@ -5450,7 +5451,7 @@ See https://github.com/odoo/owl/blob/${hash}/doc/reference/app.md#configuration 
             <t t-else="">
               Healthy Island (counter: <t t-esc="game.blightCounter"/>/<t t-esc="2*game.players + 1"/>)
             </t>
-            <Button onClick="() => game.removeBlight()" disabled="game.blightCounter === 0">Remove</Button>
+            <Button class="my-2" onClick="() => game.removeBlight()" disabled="game.blightCounter === 0">Remove</Button>
             <Button onClick="() => game.addBlight()">Add</Button>
           </span>
         </div>
@@ -5516,7 +5517,8 @@ See https://github.com/odoo/owl/blob/${hash}/doc/reference/app.md#configuration 
       this.canRestore = window.localStorage.getItem("bg_state");
       window.game = this.game;
     }
-    start() {
+    start(n) {
+      this.game.players = n;
       this.game.start();
     }
     restore() {

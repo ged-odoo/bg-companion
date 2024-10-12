@@ -108,7 +108,7 @@ export class GameState {
       this.step = 0;
     }
     const currentPhase = this.currentPhase;
-    if (currentPhase === 'explore') {
+    if (currentPhase === "explore") {
       this.explore();
     }
     if (currentPhase === "slow_powers") {
