@@ -3,14 +3,38 @@ import { GameState, PHASE_MAP, PHASES } from "./game_state";
 import { Deck, preventSleep } from "./utils";
 import { Component, mount, onWillUnmount, useState, xml } from "@odoo/owl";
 
+{
+  /* <div class="m-1 p-1 flex-1 border-gray border-radius-4 bg-white pb-2" style="position:relative;">
+<div class="d-flex" style="position:absolute;top:0;left:0;right:0;bottom:0;">
+  <div class="flex-grow" style="background-color:red;"/>
+  <div class="flex-grow" style="background-color:blue;"/>
+</div>
+<div class="text-bold">Ravage</div>
+<div class="text-italic"><t t-esc="game.ravageTarget"/></div>
+</div> */
+}
+
 class Card extends Component {
   static template = xml`
-      <div class="m-1 p-1 flex-1 border-gray border-radius-4 bg-white"  t-att-class="props.class">
-        <div class="text-bold"><t t-esc="props.title"/></div>
-        <div class="text-italic"><t t-slot="default"/></div>
+      <div class="m-1 p-1 flex-1 border-gray border-radius-4" style="position:relative;" t-att-class="props.class">
+        <div class="text-bold" t-att-class="{'text-center': props.center}"><t t-esc="props.title"/></div>
+        <div class="text-italic"  t-att-class="{'text-center': props.center}"><t t-slot="default"/></div>
+        <t t-if="props.background">
+          <div class="d-flex" style="position:absolute;top:0;left:0;right:0;bottom:0;z-index:-1;">
+            <div class="flex-grow" t-attf-style="background-color:{{col1}};"/>
+            <div class="flex-grow" t-attf-style="background-color:{{col2}};"/>
+          </div>
+        </t>
       </div>
   `;
-  static props = ["class?"];
+  static props = ["class?", "background?", "center?"];
+
+  get col1() {
+    return this.props.background.split(",")[0];
+  }
+  get col2() {
+    return this.props.background.split(",")[1];
+  }
 }
 
 class PhaseCard extends Component {
@@ -85,26 +109,19 @@ class Root extends Component {
       </t>
     </div>
     <div class="d-flex flex-column m-2 p-2" t-if="!game.isStarted">
-      <!-- <div>
-        <span>Number of players: </span>
-        <select t-model.number="game.players">
-          <option value="1">1</option>
-          <option value="2">2</option>
-        </select>
-      </div> -->
-      <Button class="'m-2'" onClick="() => this.start(1)">Start (1 player)</Button>
-      <Button class="'m-2'" onClick="() => this.start(2)">Start (2 players)</Button>
-      <Button class="'m-2'" t-if="canRestore" onClick.bind="restore">Restore from Local Storage</Button>
+      <Button class="'m-2 text-center'" onClick="() => this.start(1)">Start (1 player)</Button>
+      <Button class="'m-2 text-center'" onClick="() => this.start(2)">Start (2 players)</Button>
+      <Button class="'m-2 text-center'" t-if="canRestore" onClick.bind="restore">Restore from Local Storage</Button>
     </div>
     <div class="flex-grow d-flex flex-column" t-if="game.isStarted">
       <div class="d-flex ">
-        <Card title="'Ravage'" class="'pb-2'">
+        <Card title="'Ravage'" background="game.ravageBg" center="true">
           <t t-esc="game.ravageTarget"/>
         </Card>
-        <Card title="'Build'" class="'pb-2'">
+        <Card title="'Build'" background="game.buildBg" center="true">
           <t t-esc="game.buildTarget"/>
         </Card>
-        <Card title="'Explore'"  class="'pb-2'">
+        <Card title="'Explore'"  background="game.exploreBg" center="true">
           <t t-esc="game.exploreTarget"/>
         </Card>
       </div>
@@ -123,10 +140,10 @@ class Root extends Component {
         <t t-set-slot="info">
           <span>
             <t t-if="game.isBlightCardFlipped">
-              Blighted Island. Count: <span class="text-bold text-larger"><t t-esc="game.blightCounter"/>/<t t-esc="game.blightCard.blightCount*game.players"/></span>
+              Blighted Island. Count: <span class="text-bold text-larger text-dark-gray"><t t-esc="game.blightCounter"/>/<t t-esc="game.blightCard.blightCount*game.players"/></span>
             </t>
             <t t-else="">
-              Healthy Island. Count: <span class="text-bold text-larger"><t t-esc="game.blightCounter"/>/<t t-esc="2*game.players + 1"/></span>
+              Healthy Island. Count: <span class="text-bold text-larger text-dark-gray"><t t-esc="game.blightCounter"/>/<t t-esc="2*game.players + 1"/></span>
             </t>
           </span>
         </t>
@@ -138,11 +155,11 @@ class Root extends Component {
       </PhaseCard>
       <PhaseCard phase="'fear'" game="game">
         <t t-set-slot="info">
-          <span class="d-flex">Terror Level: <span class="text-bold text-larger"><t t-esc="game.terrorLevel"/></span></span>
+          <span class="d-flex">Terror Level: <span class="text-bold text-larger text-dark-gray"><t t-esc="game.terrorLevel"/></span></span>
         </t>
         <div class="d-flex space-between mt-1">
           <span>Remaining Fear Cards: <t t-esc="game.fearDeck.currentSize"/></span>
-          <span>Fear counter: <span class="text-bold text-larger"><t t-esc="game.fearCounter"/>/<t t-esc="4*game.players"/></span></span>
+          <span>Fear counter: <span class="text-bold text-larger text-dark-gray"><t t-esc="game.fearCounter"/>/<t t-esc="4*game.players"/></span></span>
         </div>
         <t t-foreach="game.earnedFearCards" t-as="card" t-key="card_index">
           <t t-set="isRevealed" t-value="card_index lt game.revealedFearCards"/>

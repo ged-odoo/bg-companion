@@ -1,25 +1,25 @@
 export const invaderCards1 = [
-  { description: "I. wetland" },
-  { description: "I. jungle" },
-  { description: "I. sand" },
-  { description: "I. mountain" },
+  { description: "I. wetland", background: "#acd5d3,#acd5d3" },
+  { description: "I. jungle", background: "#97cc97,#97cc97" },
+  { description: "I. sand", background: "#e7e7a0,#e7e7a0" },
+  { description: "I. mountain", background: "#d3d3d3,#d3d3d3" },
 ];
 
 export const invaderCards2 = [
-  { description: "II. wetland (*)" },
-  { description: "II. jungle (*)" },
-  { description: "II. sand (*)" },
-  { description: "II. mountain (*)" },
-  { description: "II. coastal lands" },
+  { description: "II. wetland (*)", background: "#acd5d3,#acd5d3" },
+  { description: "II. jungle (*)", background: "#97cc97,#97cc97" },
+  { description: "II. sand (*)", background: "#e7e7a0,#e7e7a0" },
+  { description: "II. mountain (*)", background: "#d3d3d3,#d3d3d3" },
+  { description: "II. coastal lands", background: "#acd5d3,#acd5d3" },
 ];
 
 export const invaderCards3 = [
-  { description: "III. mountain + wetland" },
-  { description: "III. mountain + jungle" },
-  { description: "III. jungle + sand" },
-  { description: "III. jungle + wetland" },
-  { description: "III. sand + wetland" },
-  { description: "III. sand + mountain" },
+  { description: "III. mountain+wetland", background: "#d3d3d3,#acd5d3" },
+  { description: "III. mountain+jungle", background: "#d3d3d3,#97cc97" },
+  { description: "III. jungle + sand", background: "#97cc97,#e7e7a0" },
+  { description: "III. jungle + wetland", background: "#97cc97,#acd5d3" },
+  { description: "III. sand + wetland", background: "#e7e7a0,#acd5d3" },
+  { description: "III. sand + mountain", background: "#e7e7a0,#d3d3d3" },
 ];
 
 export const fearCards = [

@@ -56,8 +56,11 @@ export class GameState {
     this.blightCounter = 0;
     this.isBlightCardFlipped = false;
     this.ravageTarget = "(none)";
+    this.ravageBg = "white,white";
     this.buildTarget = "(none)";
+    this.buildBg = "white,white";
     this.exploreTarget = "(none)";
+    this.exploreBg = "white,white";
     this.turn = 1;
     this.step = 0;
 
@@ -188,13 +191,17 @@ export class GameState {
   explore() {
     const card = this.invaderDeck.draw();
     this.exploreTarget = card.description;
+    this.exploreBg = card.background;
     this.save();
   }
 
   advanceInvaders() {
     this.ravageTarget = this.buildTarget;
+    this.ravageBg = this.buildBg;
     this.buildTarget = this.exploreTarget;
+    this.buildBg = this.exploreBg;
     this.exploreTarget = "(none)";
+    this.exploreBg = "white,white";
     this.save();
   }
 }
