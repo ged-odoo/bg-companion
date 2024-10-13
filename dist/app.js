@@ -286,6 +286,10 @@
         this.nextPhase();
         return;
       }
+      if (currentPhase === "ravage" && this.ravageTarget === "(none)") {
+        this.nextPhase();
+        return;
+      }
       this.save();
     }
     // ---------------------------------------------------------------------------
@@ -5341,7 +5345,7 @@ See https://github.com/odoo/owl/blob/${hash}/doc/reference/app.md#configuration 
   // src/app.js
   var Card = class extends Component {
     static template = xml`
-      <div class="m-1 border-gray p-1 flex-1 border-radius-4 bg-white" t-att-class="props.class">
+      <div class="m-1 p-1 flex-1 border-gray border-radius-4 bg-white"  t-att-class="props.class">
         <div class="text-bold"><t t-esc="props.title"/></div>
         <div class="text-italic"><t t-slot="default"/></div>
       </div>
@@ -5350,8 +5354,8 @@ See https://github.com/odoo/owl/blob/${hash}/doc/reference/app.md#configuration 
   };
   var PhaseCard = class extends Component {
     static template = xml`
-    <div class="phase mx-1 mb-1 py-2 px-1 border-gray border-radius-4 bg-white"
-      t-att-style="active ? 'outline: solid 2px black;border:1px solid black;background-color:#ffdcab;' : ''">
+    <div class="py-2 px-1 bg-white"
+      t-att-style="active ? 'border: 1px solid black;background-color:#ffdcab;' : 'border:1px solid #ccc;'">
       <div class="d-flex space-between align-center">
         <span  class="text-bold" t-att-class="{'text-dark-gray': !active}">
           <t t-esc="text"/>
@@ -5427,7 +5431,7 @@ See https://github.com/odoo/owl/blob/${hash}/doc/reference/app.md#configuration 
       <Button class="'m-2'" t-if="canRestore" onClick.bind="restore">Restore from Local Storage</Button>
     </div>
     <div class="flex-grow d-flex flex-column" t-if="game.isStarted">
-      <div class="d-flex p-1">
+      <div class="d-flex py-1 border-bottom-gray" style="border-bottom:1px solid black;">
         <Card title="'Ravage'" class="'pb-2'">
           <t t-esc="game.ravageTarget"/>
         </Card>

@@ -122,6 +122,10 @@ export class GameState {
       this.nextPhase();
       return;
     }
+    if (currentPhase === "ravage" && this.ravageTarget === "(none)") {
+      this.nextPhase();
+      return;
+    }
     this.save();
   }
   // ---------------------------------------------------------------------------
