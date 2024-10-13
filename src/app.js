@@ -16,16 +16,14 @@ class Card extends Component {
 class PhaseCard extends Component {
   static template = xml`
     <div class="py-2 px-1 bg-white"
-      t-att-style="active ? 'border: 1px solid black;background-color:#ffdcab;' : 'border:1px solid #ccc;'">
-      <div class="d-flex space-between align-center">
+      t-att-style=" (active ? 'border: 1px solid black;background-color:#ffdcab;' : 'border:1px solid #ccc;')">
+      <div class="d-flex space-between align-center mb-1">
         <span  class="text-bold" t-att-class="{'text-dark-gray': !active}">
           <t t-esc="text"/>
         </span>
-        <t t-if="active">
-          <span class="button" style="margin:0;" t-on-click="() => props.game.nextPhase()">
-            Complete
-          </span>
-        </t>
+        <span t-if="props.slots and props.slots.info">
+          <t t-slot="info"/>
+        </span>
       </div>
       <t t-slot="default"/>
     </div>`;
@@ -99,7 +97,7 @@ class Root extends Component {
       <Button class="'m-2'" t-if="canRestore" onClick.bind="restore">Restore from Local Storage</Button>
     </div>
     <div class="flex-grow d-flex flex-column" t-if="game.isStarted">
-      <div class="d-flex py-1 border-bottom-gray" style="border-bottom:1px solid black;">
+      <div class="d-flex ">
         <Card title="'Ravage'" class="'pb-2'">
           <t t-esc="game.ravageTarget"/>
         </Card>
@@ -110,23 +108,28 @@ class Root extends Component {
           <t t-esc="game.exploreTarget"/>
         </Card>
       </div>
+      <div class="d-flex">
+        <div class="button" t-on-click="() => this.game.increaseFear()">Add Fear</div>
+        <div class="button" t-on-click="() => this.game.addBlight()">Add Blight</div>
+        <div class="button" t-att-class="{disabled: game.blightCounter === 0}" t-on-click="() => this.game.removeBlight()">Remove Blight</div>
+        <div class="button" t-att-class="{disabled: !game.earnedFearCards.length || this.game.revealedFearCards === game.earnedFearCards.length}" t-on-click="() => this.game.showFearCard()">Reveal Fear</div>
+        <div class="button" t-on-click="() => this.game.nextPhase()">Next Phase</div>
+      </div>
       <PhaseCard phase="'growth'" game="game"/>
       <PhaseCard phase="'gain_energy'" game="game"/>
       <PhaseCard phase="'choose_powers'" game="game"/>
       <PhaseCard phase="'fast_powers'" game="game"/>
       <PhaseCard phase="'blighted_island'" game="game">
-        <div class="d-flex align-center mb-1">
-          <span class="flex-grow d-flex align-center">
+        <t t-set-slot="info">
+          <span>
             <t t-if="game.isBlightCardFlipped">
-              Blighted Island (counter: <t t-esc="game.blightCounter"/>/<t t-esc="game.blightCard.blightCount*game.players"/>)
+              Blighted Island. Count: <span class="text-bold text-larger"><t t-esc="game.blightCounter"/>/<t t-esc="game.blightCard.blightCount*game.players"/></span>
             </t>
             <t t-else="">
-              Healthy Island (counter: <t t-esc="game.blightCounter"/>/<t t-esc="2*game.players + 1"/>)
+              Healthy Island. Count: <span class="text-bold text-larger"><t t-esc="game.blightCounter"/>/<t t-esc="2*game.players + 1"/></span>
             </t>
-            <Button class="my-2" onClick="() => game.removeBlight()" disabled="game.blightCounter === 0">Remove</Button>
-            <Button onClick="() => game.addBlight()">Add</Button>
           </span>
-        </div>
+        </t>
         <t t-if="game.isBlightCardFlipped">
           <Card title="game.blightCard.title">
             <t t-esc="game.blightCard.description"/>
@@ -134,53 +137,25 @@ class Root extends Component {
         </t>
       </PhaseCard>
       <PhaseCard phase="'fear'" game="game">
-        <div class="d-flex align-center">
-          <span>Terror Level: <t t-esc="game.terrorLevel"/> (fear counter: <t t-esc="game.fearCounter"/>/<t t-esc="4*game.players"/>)</span>
-          <Button  onClick="() => this.game.increaseFear()">
-            Increase
-          </Button>
+        <t t-set-slot="info">
+          <span class="d-flex">Terror Level: <span class="text-bold text-larger"><t t-esc="game.terrorLevel"/></span></span>
+        </t>
+        <div class="d-flex space-between mt-1">
+          <span>Remaining Fear Cards: <t t-esc="game.fearDeck.currentSize"/></span>
+          <span>Fear counter: <span class="text-bold text-larger"><t t-esc="game.fearCounter"/>/<t t-esc="4*game.players"/></span></span>
         </div>
-      <div class="d-flex align-center">
-        <span>Remaining Fear Cards: <t t-esc="game.fearDeck.currentSize"/></span>
-        <Button t-if="game.earnedFearCards.length and this.game.revealedFearCards !== game.earnedFearCards.length" onClick="() => game.showFearCard()">
-            Reveal
-        </Button>
-      </div>
-      <t t-foreach="game.earnedFearCards" t-as="card" t-key="card_index">
-        <t t-set="isRevealed" t-value="card_index lt game.revealedFearCards"/>
-        <Card title="isRevealed ? card.title : 'Fear Card'">
-          <span t-att-class="{'opacity-0': !isRevealed}"><t t-esc="getCardEffect(card)"/></span>
-        </Card>
-      </t>
+        <t t-foreach="game.earnedFearCards" t-as="card" t-key="card_index">
+          <t t-set="isRevealed" t-value="card_index lt game.revealedFearCards"/>
+          <Card title="isRevealed ? card.title : 'Fear Card'">
+            <span t-att-class="{'opacity-0': !isRevealed}"><t t-esc="getCardEffect(card)"/></span>
+          </Card>
+        </t>
       </PhaseCard>
       <PhaseCard phase="'ravage'" game="game"/>
       <PhaseCard phase="'build'" game="game"/>
       <PhaseCard phase="'explore'" game="game"/>
       <PhaseCard phase="'slow_powers'" game="game"/>
       <PhaseCard phase="'time_passes'" game="game"/>
-      <!-- TURN TRACKER -->
-      <!-- <div class="d-flex align-center mb-1">
-        <span class="flex-grow text-bold text-larger">Turn <t t-esc="game.turn"/></span>
-        <div class="d-flex">
-          <Button class="'p-2'" onClick="() => this.game.nextStep()">Next Step</Button>
-        </div>
-      </div>
-      <div >
-        <span><t t-if="game.turn" t-esc="game.currentStep()"/></span>
-      </div>
-      <hr/> -->
-      <!-- INVADER STUFF -->
-      <!-- <div class="d-flex align-center mb-1">
-        <span class="flex-grow text-bold text-larger">Invaders</span>
-        <div class="d-flex">
-          <Button onClick="() => this.game.explore()" disabled="!game.invaderDeck.currentSize || game.exploreTarget !== '(none)'">
-            Explore
-          </Button>
-          <Button onClick="() => this.game.advanceInvaders()" disabled="game.exploreTarget === '(none)'">
-            Advance
-          </Button>
-        </div>
-      </div> -->
     </div>`;
   static components = { Button, Card, PhaseCard };
 
