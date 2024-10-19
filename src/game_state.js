@@ -20,6 +20,7 @@ export const PHASES = [
   "choose_powers",
   "fast_powers",
   "blighted_island",
+  "event",
   "fear",
   "ravage",
   "build",
@@ -34,6 +35,7 @@ export const PHASE_MAP = {
   choose_powers: "Spirit Phase: Choose and Pay for Powers",
   fast_powers: "Fast Power Phase",
   blighted_island: "Invader Phase: Blighted Island",
+  event: "Event Phase",
   fear: "Invader Phase: Fear",
   ravage: "Invader Phase: Ravage",
   build: "Invader Phase: Build",
@@ -50,7 +52,8 @@ export class GameState {
     this.fearDeck = new Deck(fearCards).shuffle().slice(9);
     this.earnedFearCards = [];
     this.revealedFearCards = 0; // nbr of revealed earned fear cards
-    this.blightCard = new Deck(blightCards).shuffle().cards[0];
+    this.blightCardDeck = new Deck(blightCards).shuffle();
+    this.blightCard = this.blightCardDeck.draw();
     this.terrorLevel = 1;
     this.fearCounter = 0;
     this.blightCounter = 0;
@@ -174,6 +177,14 @@ export class GameState {
       if (this.blightCounter === this.players * 2 + 1) {
         this.isBlightCardFlipped = true;
         this.blightCounter = 0;
+      }
+    } else if (
+      this.blightCounter ===
+      this.players * this.blightCard.blightCount
+    ) {
+      if (this.blightCard.staysHealthy) {
+        this.blightCounter = 0;
+        this.blightCard = this.blightCardDeck.draw();
       }
     }
     this.save();

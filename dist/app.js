@@ -61,7 +61,7 @@
     {
       title: "Scapegoats",
       effect1: "Each Town destroys 1 Explorer in its land",
-      effect2: "Each Town destrys 1 Explorer in its land. Each City destroyes 2 Explorer in its land",
+      effect2: "Each Town destrys 1 Explorer in its land. Each City destroys 2 Explorer in its land",
       effect3: "Destroy all Explorer in lands with Town/City. Each City destroys 1 Town in its land"
     },
     {
@@ -111,6 +111,43 @@
       effect1: "Each player removes 1 Explorer/Town from a land with a Sacred Site",
       effect2: "Each player removes 1 Explorer/Town from a land with Presence",
       effect3: "Each player removes 1 Explorer/Town from a land with Presence, or 1 City from a land with Sacred Site"
+    },
+    // Jagged Earth cards
+    {
+      title: "Sense of Dread",
+      effect1: "On Each Board: remove 1 Explorer from a land matching a Ravage Card",
+      effect2: "On Each Board: remove 1 Explorer/Town from a land matching a Ravage Card",
+      effect3: "On Each Board: remove 1 invader from a land matching a Ravage Card"
+    },
+    {
+      title: "Flee from Dangerous Lands",
+      effect1: "On Each Board: push 1 Explorer/Town from a land with Badlands/Wilds/Dahan",
+      effect2: "On Each Board: remove 1 Explorer/Town from a land with Badlands/Wilds/Dahan",
+      effect3: "On Each Board: remove 1 Explorer/Town from any land, or remove 1 City from a land with Badlands/Wilds/Dahan"
+    },
+    {
+      title: "Dahan reclaim Fishing Grounds",
+      effect1: "Each player chooses a different Coastal land with Dahan. In each: 1 Damage per Dahan",
+      effect2: "Each player chooses a different Coastal land. In each: gather up to 1 Dahan, 1 Damage per Dahan",
+      effect3: "Each player chooses a different Coastal land. In each: gather up to 1 Dahan, 2 Damage per Dahan"
+    },
+    {
+      title: "Beset by many Troubles",
+      effect1: "In each land with Badlands/Wilds/Disease/Beasts/Strife, Defend 3",
+      effect2: "In each land with Badlands/Wilds/Disease/Beasts/Strife, or adjacent to 3 or more such tokens, Defend 5",
+      effect3: "Every Badlands/Wilds/Disease/Beasts/Strife grants Defend 3 in its land and adjacent lands"
+    },
+    {
+      title: "Nerves Fray",
+      effect1: "Each player adds 1 Strife in a land not matching a Ravage Card",
+      effect2: "Each player adds 2 Strife in a single land not matching a Ravage Card",
+      effect3: "Each player adds 2 Strife in a single land not matching a Ravage Card. 1 Fear per player."
+    },
+    {
+      title: "Theological Strife",
+      effect1: "Each player adds 1 Strife in a land with presence",
+      effect2: "Each player adds 1 Strife in a land with presence. Each Spirit gains 1 Energy per Sacred Site they have in lands with Invaders",
+      effect3: "Each players adds 1 Strife in a land with presence. Then, each invader with Strife deals Damage to other invaders in its land"
     }
   ];
   var blightCards = [
@@ -123,6 +160,44 @@
       title: "Memory fades to dust",
       blightCount: 4,
       description: "At the start of each Invader Phase, each Spirit forgets a power or destroys 1 of their Presence"
+    },
+    // Jagged Earth cards
+    {
+      title: "Unnatural Proliferation",
+      blightCount: 3,
+      description: "Immediately, each Spirit adds 1 presence to a land with their presence. On Each Board: add 1 Dahan to a land with Dahan, and 2 Cities to the land with fewest Town/City (min 1)"
+    },
+    {
+      title: "All things weaken",
+      blightCount: 3,
+      description: "Ongoing, starting next turn: Invaders and Dahan have -1 Health (min 1). The land takes blight on 1 less damage (normally 1). When you add blight, it destroys all Presence/Beasts in that land and 1 presence (total) in an adjacent land."
+    },
+    {
+      title: "Thriving Communities",
+      blightCount: 4,
+      description: "Immediately, on each board: in 4 different lands with Explorer/Dahan, replace 1 Town with 1 City or replace 1 Explorer with 1 Town"
+    },
+    {
+      title: "Power Corrodes the Spirit",
+      blightCount: 4,
+      description: "At the start of each Invader Phase, each Spirit destroys 1 of their presence if they have 3 or more power cards in play, or have a power card in play costing 4 or more (printed) energy"
+    },
+    {
+      title: "Untended Land Crumbles",
+      blightCount: 4,
+      description: "At the start of each invader phase, on each board: add 1 blight to a land adjacent to blight. Spirits may prevent this on any/all boards; each board to be protected requires jointly paying 3 energy or destroying 1 presence from that board"
+    },
+    {
+      title: "Invaders find the land to their liking",
+      staysHealthy: true,
+      blightCount: 2,
+      description: "Immediately: if the terror level is 1/2/3, add 1/1.5/2 Fear markers per player to the fear pool (rounded down)"
+    },
+    {
+      title: "Strong Earth shatters slowly",
+      staysHealthy: true,
+      blightCount: 2,
+      description: "Immediately: Each player adds 1 Blight (from this card) to a land adjacent to Blight"
     }
   ];
 
@@ -194,6 +269,7 @@
     "choose_powers",
     "fast_powers",
     "blighted_island",
+    "event",
     "fear",
     "ravage",
     "build",
@@ -207,6 +283,7 @@
     choose_powers: "Spirit Phase: Choose and Pay for Powers",
     fast_powers: "Fast Power Phase",
     blighted_island: "Invader Phase: Blighted Island",
+    event: "Event Phase",
     fear: "Invader Phase: Fear",
     ravage: "Invader Phase: Ravage",
     build: "Invader Phase: Build",
@@ -222,7 +299,8 @@
       this.fearDeck = new Deck(fearCards).shuffle().slice(9);
       this.earnedFearCards = [];
       this.revealedFearCards = 0;
-      this.blightCard = new Deck(blightCards).shuffle().cards[0];
+      this.blightCardDeck = new Deck(blightCards).shuffle();
+      this.blightCard = this.blightCardDeck.draw();
       this.terrorLevel = 1;
       this.fearCounter = 0;
       this.blightCounter = 0;
@@ -332,6 +410,11 @@
         if (this.blightCounter === this.players * 2 + 1) {
           this.isBlightCardFlipped = true;
           this.blightCounter = 0;
+        }
+      } else if (this.blightCounter === this.players * this.blightCard.blightCount) {
+        if (this.blightCard.staysHealthy) {
+          this.blightCounter = 0;
+          this.blightCard = this.blightCardDeck.draw();
         }
       }
       this.save();
@@ -5438,9 +5521,9 @@ See https://github.com/odoo/owl/blob/${hash}/doc/reference/app.md#configuration 
       </t>
     </div>
     <div class="d-flex flex-column m-2 p-2" t-if="!game.isStarted">
-      <Button class="'m-2 text-center'" onClick="() => this.start(1)">Start (1 player)</Button>
-      <Button class="'m-2 text-center'" onClick="() => this.start(2)">Start (2 players)</Button>
-      <Button class="'m-2 text-center'" t-if="canRestore" onClick.bind="restore">Restore from Local Storage</Button>
+      <Button class="'m-2 p-2 text-center'" onClick="() => this.start(1)">Start (1 player)</Button>
+      <Button class="'m-2 p-2 text-center'" onClick="() => this.start(2)">Start (2 players)</Button>
+      <Button class="'m-2 p-2 text-center'" t-if="canRestore" onClick.bind="restore">Restore from Local Storage</Button>
     </div>
     <div class="flex-grow d-flex flex-column" t-if="game.isStarted">
       <div class="d-flex ">
@@ -5453,6 +5536,18 @@ See https://github.com/odoo/owl/blob/${hash}/doc/reference/app.md#configuration 
         <Card title="'Explore'"  background="game.exploreBg" center="true">
           <t t-esc="game.exploreTarget"/>
         </Card>
+      </div>
+      <div class="d-flex space-between p-1">
+        <div>Terror Level: <span class="text-bold text-larger text-dark-gray"><t t-esc="game.terrorLevel"/></span></div>
+        <div>Fear: <span class="text-bold text-larger text-dark-gray"><t t-esc="game.fearCounter"/>/<t t-esc="4*game.players"/></span></div>
+        <div>Blight:             
+            <t t-if="game.isBlightCardFlipped">
+              <span class="text-bold text-larger text-dark-gray"><t t-esc="game.blightCounter"/>/<t t-esc="game.blightCard.blightCount*game.players"/></span>
+            </t>
+            <t t-else="">
+              <span class="text-bold text-larger text-dark-gray"><t t-esc="game.blightCounter"/>/<t t-esc="2*game.players + 1"/></span>
+            </t>
+      </div>
       </div>
       <div class="d-flex">
         <div class="button" t-on-click="() => this.game.increaseFear()">Add Fear</div>
@@ -5482,6 +5577,7 @@ See https://github.com/odoo/owl/blob/${hash}/doc/reference/app.md#configuration 
           </Card>
         </t>
       </PhaseCard>
+      <PhaseCard phase="'event'" game="game"/>
       <PhaseCard phase="'fear'" game="game">
         <t t-set-slot="info">
           <span class="d-flex">Terror Level: <span class="text-bold text-larger text-dark-gray"><t t-esc="game.terrorLevel"/></span></span>

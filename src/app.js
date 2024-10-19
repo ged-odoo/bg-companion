@@ -109,9 +109,9 @@ class Root extends Component {
       </t>
     </div>
     <div class="d-flex flex-column m-2 p-2" t-if="!game.isStarted">
-      <Button class="'m-2 text-center'" onClick="() => this.start(1)">Start (1 player)</Button>
-      <Button class="'m-2 text-center'" onClick="() => this.start(2)">Start (2 players)</Button>
-      <Button class="'m-2 text-center'" t-if="canRestore" onClick.bind="restore">Restore from Local Storage</Button>
+      <Button class="'m-2 p-2 text-center'" onClick="() => this.start(1)">Start (1 player)</Button>
+      <Button class="'m-2 p-2 text-center'" onClick="() => this.start(2)">Start (2 players)</Button>
+      <Button class="'m-2 p-2 text-center'" t-if="canRestore" onClick.bind="restore">Restore from Local Storage</Button>
     </div>
     <div class="flex-grow d-flex flex-column" t-if="game.isStarted">
       <div class="d-flex ">
@@ -124,6 +124,18 @@ class Root extends Component {
         <Card title="'Explore'"  background="game.exploreBg" center="true">
           <t t-esc="game.exploreTarget"/>
         </Card>
+      </div>
+      <div class="d-flex space-between p-1">
+        <div>Terror Level: <span class="text-bold text-larger text-dark-gray"><t t-esc="game.terrorLevel"/></span></div>
+        <div>Fear: <span class="text-bold text-larger text-dark-gray"><t t-esc="game.fearCounter"/>/<t t-esc="4*game.players"/></span></div>
+        <div>Blight:             
+            <t t-if="game.isBlightCardFlipped">
+              <span class="text-bold text-larger text-dark-gray"><t t-esc="game.blightCounter"/>/<t t-esc="game.blightCard.blightCount*game.players"/></span>
+            </t>
+            <t t-else="">
+              <span class="text-bold text-larger text-dark-gray"><t t-esc="game.blightCounter"/>/<t t-esc="2*game.players + 1"/></span>
+            </t>
+      </div>
       </div>
       <div class="d-flex">
         <div class="button" t-on-click="() => this.game.increaseFear()">Add Fear</div>
@@ -153,6 +165,7 @@ class Root extends Component {
           </Card>
         </t>
       </PhaseCard>
+      <PhaseCard phase="'event'" game="game"/>
       <PhaseCard phase="'fear'" game="game">
         <t t-set-slot="info">
           <span class="d-flex">Terror Level: <span class="text-bold text-larger text-dark-gray"><t t-esc="game.terrorLevel"/></span></span>
